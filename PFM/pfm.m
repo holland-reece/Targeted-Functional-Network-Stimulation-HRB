@@ -1,43 +1,40 @@
 function pfm(C,DistanceMatrix,OutDir,Densities,NumberReps,MinDistance,BadVerts,Structures,NumberCores)
-% cjl; cjl2007@med.cornell.edu;
-rng(44); % for reproducibility.
+% cjl; cjl2007@med.cornell.edu
+rng(44); % for reproducibility
 
-% define "resource" directories;
-ResourceDir = '/home/charleslynch/MultiEchofMRI-Pipeline/res0urces';
+% define "resource" directories
+ResourceDir = '/athena/victorialab/scratch/hob4003/ME_Pipeline/MEF-P-HB/MultiEchofMRI-Pipeline/res0urces';
 addpath(genpath(ResourceDir));
 
-% define the infomap binary location;
-InfoMap = '/home/charleslynch/miniconda3/bin/infomap';
+% define the infomap binary location
+% NOTE: only need to use binary if Python not installed (can just use 'module load infomap' on cluster)
+% InfoMap = '/athena/victorialab/scratch/hob4003/PFM/infomap'; % if using InfoMap binary
+InfoMap = 'infomap'; % if InfoMap is loaded in your env
 
-% define a list of regions 
-% to be considered in the
-% community detection routine;
+% define a list of regions to be considered in the community detection routine
 if isempty(Structures)
     Structures = unique(C.brainstructurelabel);  
 end
 
-% make output
-% directory ;
+% make output directory
 mkdir(OutDir);
 
-% change
-% directory;
+% change directory
 cd(OutDir);
 
-% extract brain structure;
+% extract brain structure
 BrainStructure = C.brainstructure;
 BrainStructure(BrainStructure < 0) = [];
 BrainStructureLabels = C.brainstructurelabel;
 
-% count the number of cortical vertices;
+% count the number of cortical vertices
 nCorticalVertices = nnz(C.brainstructure==1) + nnz(C.brainstructure==2);
 
-% index of relevant vertices and voxels;
+% index of relevant vertices and voxels
 GoodVerts = find(ismember(BrainStructure,find(ismember(BrainStructureLabels,Structures))));
 GoodVerts(ismember(GoodVerts,BadVerts)) = [];
 
-% load and trim
-% the distance matrix;
+% load and trim the distance matrix
 D = smartload(DistanceMatrix);
 D((nCorticalVertices + 1):end,(nCorticalVertices + 1):end) = 0; % note: this will ensure that subcortical-subcortical edges are set to zero;
 D = D(GoodVerts,GoodVerts);
